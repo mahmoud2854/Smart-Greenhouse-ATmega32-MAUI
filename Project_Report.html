@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>مشروع الصوبة الزراعية الذكية</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; color: #333; line-height: 1.6; }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .team { background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .team ul { list-style-type: square; margin-right: 20px; }
+        pre { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; direction: ltr; text-align: left; overflow-x: auto; font-family: 'Courier New', Courier, monospace; }
+        .qa { margin-bottom: 20px; }
+        .qa strong { color: #c0392b; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #bdc3c7; padding: 10px; text-align: center; }
+        th { background: #34495e; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 style="border:none;">اسم المشروع: .......................................</h1>
+        <h3>مشروع تخرج — القسم / الكلية: .......................................</h3>
+    </div>
+
+    <div class="team">
+        <h2>👥 فريق العمل:</h2>
+        <ul>
+            <li>.......................................</li>
+            <li>.......................................</li>
+            <li>.......................................</li>
+            <li>.......................................</li>
+        </ul>
+    </div>
+
+    <h2>📌 نبذة عن المشروع (Abstract)</h2>
+    <p>هذا المشروع عبارة عن نظام متكامل لإدارة صوبة زراعية ذكية (Smart Greenhouse). يتكون من جزأين رئيسيين:</p>
+    <ol>
+        <li><strong>الهاردوير (ATmega32):</strong> يقوم بقراءة بيانات البيئة المحيطة بالنبات (درجة الحرارة، نسبة الرطوبة الجوية، رطوبة التربة، والإضاءة) باستخدام حساسات متطورة. ثم يتخذ قرارات تلقائية لحماية النبات.</li>
+        <li><strong>تطبيق الموبايل (.NET MAUI):</strong> يتصل بالميكروكنترولر عبر البلوتوث لعرض القراءات بشكل حي ومباشر. كما يوفر إمكانية التحكم اليدوي في الأجهزة (مضخة، مروحة، إضاءة).</li>
+    </ol>
+
+    <h2>📐 رسم هيكلي للمشروع (Block Diagram)</h2>
+    <ul>
+        <li><strong>المدخلات (Sensors):</strong> حساس حرارة ورطوبة (DHT11) + حساس رطوبة تربة (Analog) + حساس إضاءة (LDR).</li>
+        <li><strong>المعالجة (Microcontroller):</strong> ATmega32 يعمل بتردد 8MHz.</li>
+        <li><strong>المخرجات (Actuators):</strong> ريلاي لمضخة مياه + ريلاي لمروحة تبريد + لمبة إضاءة LED عبر ترانزستور.</li>
+        <li><strong>الاتصال (Communication):</strong> وحدة بلوتوث HC-05 ترسل وتستقبل البيانات إلى/من تطبيق الموبايل.</li>
+    </ul>
+
+    <h2>🔌 التوصيلات الكهربائية وبروتوس (Proteus Wiring)</h2>
+    <table>
+        <tr>
+            <th>المكون / الحساس</th>
+            <th>الطرف في ATmega32</th>
+            <th>ملاحظات التوصيل</th>
+        </tr>
+        <tr><td>حساس رطوبة التربة</td><td>PA0</td><td>مخرج Analog</td></tr>
+        <tr><td>حساس الضوء (LDR)</td><td>PA1</td><td>مع مقاومة سحب لأسفل 10kΩ</td></tr>
+        <tr><td>حساس (DHT11)</td><td>PA2</td><td>مع مقاومة رفع 4.7kΩ</td></tr>
+        <tr><td>ريلاي المضخة (Pump)</td><td>PB0</td><td>يعمل بإشارة منخفضة (Active LOW)</td></tr>
+        <tr><td>ريلاي المروحة (Fan)</td><td>PB1</td><td>يعمل بإشارة منخفضة (Active LOW)</td></tr>
+        <tr><td>الإضاءة (LEDs)</td><td>PB2</td><td>مفتاح ترانزستور (BC547) لحماية المعالج</td></tr>
+        <tr><td>وحدة البلوتوث (RX)</td><td>PD1 (TX)</td><td>لإرسال البيانات</td></tr>
+        <tr><td>وحدة البلوتوث (TX)</td><td>PD0 (RX)</td><td>لاستقبال الأوامر</td></tr>
+    </table>
+
+    <h2>💻 أكواد المشروع الأساسية</h2>
+    
+    <h3>1. كود الهاردوير (ATmega32 - Logic Layer)</h3>
+    <p>هذا الجزء يوضح محرك القرار (State Machine) وكيفية التعامل مع الحساسات:</p>
+<pre><code>static void state_evaluate(void) {
+    /* Pump Logic (with hysteresis) */
+    if (g_pump_mode == MODE_AUTO) {
+        if (g_data.soil < SOIL_THRESHOLD_LOW) g_data.pump_on = 1;
+        else if (g_data.soil > SOIL_THRESHOLD_HIGH) g_data.pump_on = 0;
+    } else {
+        g_data.pump_on = (g_pump_mode == MODE_MANUAL_ON) ? 1 : 0;
+    }
+
+    /* Fan Logic (with hysteresis) */
+    if (g_fan_mode == MODE_AUTO) {
+        if (g_data.temperature > TEMP_THRESHOLD_HIGH) g_data.fan_on = 1;
+        else if (g_data.temperature < TEMP_THRESHOLD_LOW) g_data.fan_on = 0;
+    } else {
+        g_data.fan_on = (g_fan_mode == MODE_MANUAL_ON) ? 1 : 0;
+    }
+}
+</code></pre>
+
+    <h3>2. كود تطبيق الموبايل (MAUI - DashboardViewModel)</h3>
+    <p>كيفية معالجة أوامر التحكم اليدوي (Manual Override) وإرسالها عبر البلوتوث:</p>
+<pre><code>private void TogglePump() {
+    string cmd = IsPumpOn ? "P:OFF" : "P:ON";
+    _bluetooth.SendCommand(cmd);
+}
+
+private void ToggleFan() {
+    string cmd = IsFanOn ? "F:OFF" : "F:ON";
+    _bluetooth.SendCommand(cmd);
+}
+
+private void ResetAuto() {
+    _bluetooth.SendCommand("A:AUTO");
+    StatusMessage = "🔄 Switched to AUTO mode";
+}
+</code></pre>
+
+    <h2>❓ أسئلة المناقشة المتوقعة للمشروع</h2>
+    
+    <div class="qa">
+        <strong>س1: لماذا تم بناء الكود باستخدام `State Machine` بدلًا من `delay()`؟</strong>
+        <p>الإجابة: لأن استخدام `delay` يوقف المعالج تمامًا، مما يمنع استقبال أوامر البلوتوث للتحكم اليدوي. الـ State Machine تجعل النظام (Non-blocking) ومستجيب دائمًا للأوامر في أي لحظة.</p>
+    </div>
+
+    <div class="qa">
+        <strong>س2: كيف تم تنفيذ خاصية الـ (Hysteresis) في المروحة والمضخة؟ ولماذا؟</strong>
+        <p>الإجابة: بوضع عتبتين مختلفتين للتشغيل والإيقاف (مثل التشغيل عند 30°C والإيقاف عند 27°C). السبب هو منع الريلاي من الارتعاش (Chattering) وتخريب الأجهزة عند تذبذب الحرارة حول درجة معينة.</p>
+    </div>
+
+    <div class="qa">
+        <strong>س3: ما هي بنية `MVVM` المستخدمة في تطبيق الموبايل؟</strong>
+        <p>الإجابة: هي (Model - View - ViewModel)، وهي تفصل واجهة المستخدم عن منطق التشغيل. هذا يسمح بتحديث الشاشة تلقائياً بمجرد وصول بيانات من البلوتوث باستخدام خاصية (Data Binding) دون كتابة كود معقد في الواجهة.</p>
+    </div>
+
+    <div class="qa">
+        <strong>س4: كيف تمكّن التطبيق من قراءة بيانات البلوتوث دون أن يتجمد (Freezing)؟</strong>
+        <p>الإجابة: قراءة البلوتوث تتم في مسار خلفي منفصل (`Task.Run`). عندما تصل البيانات، يتم تمريرها للواجهة الرئيسية عبر دالة `MainThread.BeginInvokeOnMainThread` لتحديث الـ UI بأمان تام.</p>
+    </div>
+
+</body>
+</html>

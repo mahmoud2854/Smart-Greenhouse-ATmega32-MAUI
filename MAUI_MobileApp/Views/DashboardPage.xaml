@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SmartGreenhouseApp.ViewModels"
+             x:Class="SmartGreenhouseApp.Views.DashboardPage"
+             x:DataType="vm:DashboardViewModel"
+             Title="Smart Greenhouse"
+             BackgroundColor="#0D1117">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <!-- HEADER -->
+            <Grid ColumnDefinitions="Auto,*,Auto" Padding="0,0,0,4">
+                <Label Text="🌿" FontSize="28" VerticalOptions="Center"/>
+                <VerticalStackLayout Grid.Column="1" Padding="12,0">
+                    <Label Text="Smart Greenhouse" FontSize="22" FontAttributes="Bold" TextColor="White"/>
+                    <Label Text="{Binding StatusMessage}" FontSize="11" TextColor="#8B95A5" LineBreakMode="TailTruncation"/>
+                </VerticalStackLayout>
+                <Ellipse Grid.Column="2" WidthRequest="14" HeightRequest="14"
+                         Fill="{Binding ConnectionColor}" VerticalOptions="Center"/>
+            </Grid>
+
+            <!-- CONNECTION -->
+            <Frame BackgroundColor="#161B22" BorderColor="#30363D" CornerRadius="12" Padding="14" HasShadow="False">
+                <VerticalStackLayout Spacing="10">
+                    <!-- Dropdown for detected ports -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Picker Title="Detected Ports"
+                                ItemsSource="{Binding AvailablePorts}"
+                                SelectedItem="{Binding SelectedPort}"
+                                TextColor="White" TitleColor="#636E72"
+                                BackgroundColor="#0D1117"/>
+                        <Button Grid.Column="1" Text="↻"
+                                Command="{Binding RefreshPortsCommand}"
+                                BackgroundColor="#30363D" TextColor="White"
+                                CornerRadius="8" WidthRequest="44" HeightRequest="44" FontSize="18"/>
+                    </Grid>
+                    <!-- Manual entry + Connect -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry Placeholder="Or type: COM3, COM5..."
+                               Text="{Binding PortEntry}"
+                               TextColor="White" PlaceholderColor="#636E72"
+                               BackgroundColor="#0D1117"
+                               FontSize="14"/>
+                        <Button Grid.Column="1"
+                                Text="{Binding ConnectButtonText}"
+                                Command="{Binding ConnectCommand}"
+                                BackgroundColor="{Binding ConnectionColor}"
+                                TextColor="White" CornerRadius="8"
+                                FontAttributes="Bold" HeightRequest="44"
+                                MinimumWidthRequest="110"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- GAUGES -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Frame BackgroundColor="#161B22" BorderColor="#30363D" CornerRadius="16" Padding="10" HasShadow="False">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="🌡️ Temperature" FontSize="13" TextColor="#8B95A5" HorizontalOptions="Center"/>
+                        <GraphicsView x:Name="TempGauge" WidthRequest="140" HeightRequest="140" HorizontalOptions="Center"/>
+                        <Label Text="{Binding Temperature, StringFormat='{0}°C'}"
+                               FontSize="16" TextColor="{Binding TempColor}"
+                               HorizontalOptions="Center" FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                </Frame>
+                <Frame Grid.Column="1" BackgroundColor="#161B22" BorderColor="#30363D" CornerRadius="16" Padding="10" HasShadow="False">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="💧 Soil Moisture" FontSize="13" TextColor="#8B95A5" HorizontalOptions="Center"/>
+                        <GraphicsView x:Name="SoilGauge" WidthRequest="140" HeightRequest="140" HorizontalOptions="Center"/>
+                        <Label Text="{Binding SoilMoisture, StringFormat='{0}%'}"
+                               FontSize="16" TextColor="{Binding SoilColor}"
+                               HorizontalOptions="Center" FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+
+            <!-- HUMIDITY -->
+            <Frame BackgroundColor="#161B22" BorderColor="#30363D" CornerRadius="12" Padding="14" HasShadow="False">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Label Text="💨" FontSize="24" VerticalOptions="Center"/>
+                    <VerticalStackLayout Grid.Column="1" Padding="12,0">
+                        <Label Text="Humidity" FontSize="14" TextColor="#8B95A5"/>
+                        <Label Text="{Binding Humidity, StringFormat='{0}%'}"
+                               FontSize="22" TextColor="White" FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                    <ProgressBar Grid.Column="2" Progress="{Binding HumidityProgress}"
+                                 ProgressColor="#3498DB" WidthRequest="80" VerticalOptions="Center"/>
+                </Grid>
+            </Frame>
+
+            <!-- STATUS -->
+            <Label Text="System Status" FontSize="16" TextColor="#8B95A5" FontAttributes="Bold"/>
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                <Frame BackgroundColor="#161B22" BorderColor="#30363D" CornerRadius="12" Padding="10" HasShadow="False">
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label Text="💦" FontSize="24" HorizontalOptions="Center"/>
+                        <Label Text="Pump" FontSize="12" TextColor="#8B95A5" HorizontalOptions="Center"/>
+                        <Frame BackgroundColor="{Binding PumpStatusColor}" CornerRadius="10" Padding="8,3" HasShadow="False" HorizontalOptions="Center">
+                            <Label Text="{Binding PumpStatusText}" FontSize="12" TextColor="White" FontAttributes="Bold"/>
+                        </Frame>
+                    </VerticalStackLayout>
+                </Frame>
+                <Frame Grid.Column="1" BackgroundColor="#161B22" BorderColor="#30363D" CornerRadius="12" Padding="10" HasShadow="False">
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label Text="🌀" FontSize="24" HorizontalOptions="Center"/>
+                        <Label Text="Fan" FontSize="12" TextColor="#8B95A5" HorizontalOptions="Center"/>
+                        <Frame BackgroundColor="{Binding FanStatusColor}" CornerRadius="10" Padding="8,3" HasShadow="False" HorizontalOptions="Center">
+                            <Label Text="{Binding FanStatusText}" FontSize="12" TextColor="White" FontAttributes="Bold"/>
+                        </Frame>
+                    </VerticalStackLayout>
+                </Frame>
+                <Frame Grid.Column="2" BackgroundColor="#161B22" BorderColor="#30363D" CornerRadius="12" Padding="10" HasShadow="False">
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label Text="💡" FontSize="24" HorizontalOptions="Center"/>
+                        <Label Text="Light" FontSize="12" TextColor="#8B95A5" HorizontalOptions="Center"/>
+                        <Frame BackgroundColor="{Binding LightStatusColor}" CornerRadius="10" Padding="8,3" HasShadow="False" HorizontalOptions="Center">
+                            <Label Text="{Binding LightStatusText}" FontSize="12" TextColor="White" FontAttributes="Bold"/>
+                        </Frame>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+
+            <!-- CONTROLS -->
+            <Label Text="Manual Override" FontSize="16" TextColor="#8B95A5" FontAttributes="Bold"/>
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                <Button Text="{Binding PumpButtonText}" Command="{Binding TogglePumpCommand}"
+                        BackgroundColor="#1A5276" TextColor="White" CornerRadius="12"
+                        FontAttributes="Bold" HeightRequest="48" FontSize="12"/>
+                <Button Grid.Column="1" Text="{Binding FanButtonText}" Command="{Binding ToggleFanCommand}"
+                        BackgroundColor="#1A5276" TextColor="White" CornerRadius="12"
+                        FontAttributes="Bold" HeightRequest="48" FontSize="12"/>
+                <Button Grid.Column="2" Text="{Binding LightButtonText}" Command="{Binding ToggleLightCommand}"
+                        BackgroundColor="#7D6608" TextColor="White" CornerRadius="12"
+                        FontAttributes="Bold" HeightRequest="48" FontSize="12"/>
+            </Grid>
+            <Button Text="🔄 Reset to AUTO Mode" Command="{Binding ResetAutoCommand}"
+                    BackgroundColor="#2ECC71" TextColor="White" CornerRadius="12"
+                    FontAttributes="Bold" HeightRequest="46" FontSize="14"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
